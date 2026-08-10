@@ -1,0 +1,29 @@
+<div class="weather-header">
+  <div class="title">{{ data.location.name }}, {{ data.location.country }}</div>
+  <div class="meta-line">{{ data.fetched_at }}</div>
+</div>
+
+<div class="weather-current">
+  <img class="weather-icon" src="{{ config.backend_url }}{{ data.current.icon_url }}" alt="{{ data.current.icon }}"/>
+  <div class="value">{{ data.current.temperature_c }}°C</div>
+  <div class="current-meta">
+    <div>Vent {{ data.current.wind_speed_kmh }} km/h</div>
+    <div>Humidité {{ data.current.humidity_pct }}%</div>
+    <div>Lever {{ data.sun.next_sunrise_hm }}</div>
+    <div>Coucher {{ data.sun.next_sunset_hm }}</div>
+  </div>
+</div>
+
+<div class="chart">{{ data.hourly_chart_svg }}</div>
+
+<div class="daily-row">
+  {% for day in data.daily_next_7 %}
+  <div class="daily-item">
+    <img class="weather-icon" src="{{ config.backend_url }}{{ day.icon_url }}" alt="{{ day.icon }}"/>
+    <div class="day-name">{{ day.day_name }}</div>
+    <div class="temps">{{ day.temp_min_c }}° / {{ day.temp_max_c }}°</div>
+    <div class="wind">{{ day.wind_speed_kmh }} km/h</div>
+    <div class="humidity">{{ day.humidity_pct }}%</div>
+  </div>
+  {% endfor %}
+</div>

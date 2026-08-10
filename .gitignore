@@ -1,0 +1,6 @@
+/bin/
+/data/
+*.db
+*.test
+.DS_Store
+.tools/

@@ -1,0 +1,6 @@
+<div class="title">{{ data.location.name }}</div>
+<div class="weather-current">
+  <img class="weather-icon" src="{{ config.backend_url }}{{ data.current.icon_url }}" alt="{{ data.current.icon }}"/>
+  <div class="value">{{ data.current.temperature_c }}°C</div>
+</div>
+<div class="meta-line">{{ data.current.wind_speed_kmh }} km/h · {{ data.current.humidity_pct }}%</div>
