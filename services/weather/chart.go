@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	windScaleMax     = 120.0
-	humidityMaxPct   = 100.0
+	windScaleMax      = 120.0
+	humidityMaxPct    = 100.0
 	windShowThreshold = 30.0
 
 	chartFontAxis    = 15.0
@@ -18,6 +18,13 @@ const (
 	chartFontCurrent = 16.0
 	chartFontSun     = 15.0
 )
+
+type ChartOptions struct {
+	// SparseLabels shows temp values only on first, last, hottest and coldest points.
+	SparseLabels bool
+	// TempOnly draws only the temperature series (no wind/humidity).
+	TempOnly bool
+}
 
 func IsRainCode(code int) bool {
 	switch {
@@ -50,16 +57,49 @@ func hasStrongWind(hourly []HourlyPoint) bool {
 	return false
 }
 
+func sparseLabelIndexes(temps []float64) map[int]bool {
+	out := map[int]bool{}
+	if len(temps) == 0 {
+		return out
+	}
+	out[0] = true
+	out[len(temps)-1] = true
+
+	minIdx, maxIdx := 0, 0
+	for i, v := range temps {
+		if v < temps[minIdx] {
+			minIdx = i
+		}
+		if v > temps[maxIdx] {
+			maxIdx = i
+		}
+	}
+	if minIdx != 0 && minIdx != len(temps)-1 {
+		out[minIdx] = true
+	}
+	if maxIdx != 0 && maxIdx != len(temps)-1 {
+		out[maxIdx] = true
+	}
+	return out
+}
+
 func BuildHourlyChart(hourly []HourlyPoint, sun SunResponse, now time.Time, loc *time.Location, current CurrentResponse) string {
+	return BuildHourlyChartWithOptions(hourly, sun, now, loc, current, ChartOptions{})
+}
+
+func BuildHourlyChartWithOptions(hourly []HourlyPoint, sun SunResponse, now time.Time, loc *time.Location, current CurrentResponse, opts ChartOptions) string {
 	if len(hourly) == 0 {
 		return ""
 	}
 
-	showHumidity := IsRainCode(current.WeatherCode) || hasRainInHourly(hourly)
-	showWind := current.WindSpeedKmh > windShowThreshold || hasStrongWind(hourly)
+	showHumidity := !opts.TempOnly && (IsRainCode(current.WeatherCode) || hasRainInHourly(hourly))
+	showWind := !opts.TempOnly && (current.WindSpeedKmh > windShowThreshold || hasStrongWind(hourly))
 
 	const width = 800.0
-	const height = 190.0
+	height := 190.0
+	if opts.TempOnly {
+		height = 150.0
+	}
 	const padL = 12.0
 	padR := 12.0
 	if showWind || showHumidity {
@@ -89,6 +129,10 @@ func BuildHourlyChart(hourly []HourlyPoint, sun SunResponse, now time.Time, loc 
 	}
 
 	tempMin, tempMax := paddedTempRange(temps)
+	labelIdx := map[int]bool{}
+	if opts.SparseLabels {
+		labelIdx = sparseLabelIndexes(temps)
+	}
 
 	xFor := func(t time.Time) float64 {
 		if t.Before(start) {
@@ -125,7 +169,6 @@ func BuildHourlyChart(hourly []HourlyPoint, sun SunResponse, now time.Time, loc 
 	fmt.Fprintf(&b, `<clipPath id="plot"><rect x="%.0f" y="%.0f" width="%.0f" height="%.0f"/></clipPath>`, padL, padT, chartW, chartH)
 	fmt.Fprintf(&b, `<rect x="%.0f" y="%.0f" width="%.0f" height="%.0f" fill="none" stroke="#ccc" stroke-width="1.5"/>`, padL, padT, chartW, chartH)
 
-	// Light horizontal guides (no temperature scale — values are on each point).
 	for i := 0; i <= 4; i++ {
 		v := tempMin + (tempMax-tempMin)*float64(i)/4
 		y := yTemp(v)
@@ -180,7 +223,10 @@ func BuildHourlyChart(hourly []HourlyPoint, sun SunResponse, now time.Time, loc 
 		yt := yTemp(temps[i])
 
 		fmt.Fprintf(&b, `<circle cx="%.1f" cy="%.1f" r="3.2" fill="#111"/>`, x, yt)
-		fmt.Fprintf(&b, `<text x="%.1f" y="%.1f" font-size="%.0f" fill="#111" text-anchor="middle" font-weight="700">%.0f°</text>`, x, yt-10, chartFontPoint, temps[i])
+		showLabel := !opts.SparseLabels || labelIdx[i]
+		if showLabel {
+			fmt.Fprintf(&b, `<text x="%.1f" y="%.1f" font-size="%.0f" fill="#111" text-anchor="middle" font-weight="700">%.0f°</text>`, x, yt-10, chartFontPoint, temps[i])
+		}
 
 		if i%2 == 0 || i == len(hourly)-1 {
 			label := t.In(loc).Format("15h")

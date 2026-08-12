@@ -1,20 +1,40 @@
 <div class="title">{{ data.location.name }}</div>
 <div class="weather-current">
   <img class="weather-icon" src="{{ config.backend_url }}{{ data.current.icon_url }}" alt="{{ data.current.icon }}"/>
-  <div>
-    <div class="value">{{ data.current.temperature_c }}°C</div>
-    <div class="meta-line">{{ data.current.wind_speed_kmh }} km/h · {{ data.current.humidity_pct }}%</div>
+  <div class="value">{{ data.current.temperature_c }}°C</div>
+  <div class="current-meta">
+    <div>Vent {{ data.current.wind_speed_kmh }} km/h</div>
+    <div>Humidité {{ data.current.humidity_pct }}%</div>
+    <div>Lever {{ data.sun.next_sunrise_hm }}</div>
+    <div>Coucher {{ data.sun.next_sunset_hm }}</div>
   </div>
 </div>
 
-<div class="daily-row" style="margin-top:8px;">
-  {% for day in data.daily_next_7 %}
-  {% if forloop.index > 1 and forloop.index < 5 %}
-  <div class="daily-item">
-    <img class="weather-icon" src="{{ config.backend_url }}{{ day.icon_url }}" alt="{{ day.icon }}"/>
-    <div class="day-name">{{ day.day_name }}</div>
-    <div>{{ day.temp_min_c }}° / {{ day.temp_max_c }}°</div>
+<div class="daily-stack">
+  <div class="daily-row">
+    {% for day in data.daily_next_7 %}
+    {% if forloop.index > 1 and forloop.index < 5 %}
+    <div class="daily-item">
+      <img class="weather-icon" src="{{ config.backend_url }}{{ day.icon_url }}" alt="{{ day.icon }}"/>
+      <div class="day-name">{{ day.day_name }}</div>
+      <div class="temps">{{ day.temp_min_c }}° / {{ day.temp_max_c }}°</div>
+      <div class="wind">{{ day.wind_speed_kmh }} km/h</div>
+      <div class="humidity">{{ day.humidity_pct }}%</div>
+    </div>
+    {% endif %}
+    {% endfor %}
   </div>
-  {% endif %}
-  {% endfor %}
+  <div class="daily-row">
+    {% for day in data.daily_next_7 %}
+    {% if forloop.index > 4 and forloop.index < 8 %}
+    <div class="daily-item">
+      <img class="weather-icon" src="{{ config.backend_url }}{{ day.icon_url }}" alt="{{ day.icon }}"/>
+      <div class="day-name">{{ day.day_name }}</div>
+      <div class="temps">{{ day.temp_min_c }}° / {{ day.temp_max_c }}°</div>
+      <div class="wind">{{ day.wind_speed_kmh }} km/h</div>
+      <div class="humidity">{{ day.humidity_pct }}%</div>
+    </div>
+    {% endif %}
+    {% endfor %}
+  </div>
 </div>

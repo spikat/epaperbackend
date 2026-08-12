@@ -1,6 +1,9 @@
-<div class="title">{{ data.location.name }}</div>
-<div class="weather-current">
-  <img class="weather-icon" src="{{ config.backend_url }}{{ data.current.icon_url }}" alt="{{ data.current.icon }}"/>
-  <div class="value">{{ data.current.temperature_c }}°C</div>
+<div class="quadrant-fill">
+  <div class="q-title">{{ data.location.name }}</div>
+  <img class="q-icon" src="{{ config.backend_url }}{{ data.current.icon_url }}" alt="{{ data.current.icon }}"/>
+  <div class="q-temp">{{ data.current.temperature_c }}°C</div>
+  <div class="q-meta">
+    <div>Vent {{ data.current.wind_speed_kmh }} km/h</div>
+    <div>Humidité {{ data.current.humidity_pct }}%</div>
+  </div>
 </div>
-<div class="meta-line">{{ data.current.wind_speed_kmh }} km/h · {{ data.current.humidity_pct }}%</div>

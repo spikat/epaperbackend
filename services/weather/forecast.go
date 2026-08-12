@@ -51,14 +51,15 @@ type DailyForecast struct {
 }
 
 type Response struct {
-	Location       LocationResponse `json:"location"`
-	FetchedAt      string           `json:"fetched_at"`
-	Cached         bool             `json:"cached"`
-	Current        CurrentResponse  `json:"current"`
-	HourlyNext12   []HourlyPoint    `json:"hourly_next_12"`
-	HourlyChartSVG string           `json:"hourly_chart_svg"`
-	Sun            SunResponse      `json:"sun"`
-	DailyNext7     []DailyForecast  `json:"daily_next_7"`
+	Location             LocationResponse `json:"location"`
+	FetchedAt            string           `json:"fetched_at"`
+	Cached               bool             `json:"cached"`
+	Current              CurrentResponse  `json:"current"`
+	HourlyNext12         []HourlyPoint    `json:"hourly_next_12"`
+	HourlyChartSVG       string           `json:"hourly_chart_svg"`
+	HourlyChartSVGSparse string           `json:"hourly_chart_svg_sparse"`
+	Sun                  SunResponse      `json:"sun"`
+	DailyNext7           []DailyForecast  `json:"daily_next_7"`
 }
 
 func BuildResponse(loc *Location, raw *ForecastRaw, now time.Time) *Response {
@@ -88,6 +89,10 @@ func BuildResponse(loc *Location, raw *ForecastRaw, now time.Time) *Response {
 	resp.Sun = buildSun(raw, now, locTZ)
 	resp.DailyNext7 = buildDailyNext7(raw, locTZ)
 	resp.HourlyChartSVG = BuildHourlyChart(resp.HourlyNext12, resp.Sun, now, locTZ, resp.Current)
+	resp.HourlyChartSVGSparse = BuildHourlyChartWithOptions(resp.HourlyNext12, resp.Sun, now, locTZ, resp.Current, ChartOptions{
+		SparseLabels: true,
+		TempOnly:     true,
+	})
 
 	return resp
 }
