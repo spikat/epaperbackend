@@ -5,14 +5,15 @@ polling_verb: get
 polling_url: "{{ backend_url }}/weather?country={{ country }}&city={{ city }}"
 custom_fields:
   - keyname: backend_url
+    name: Backend URL
     field_type: text
-    default: http://127.0.0.1:5678
-    label: Backend URL
+    default: http://epaperbackend:5678
+    description: "Docker: http://epaperbackend:5678 — LAN: http://truenas.local:5678"
   - keyname: country
+    name: Country (ISO)
     field_type: text
     default: FR
-    label: Country (ISO)
   - keyname: city
+    name: City or postal code
     field_type: text
     default: Marseille
-    label: City or postal code

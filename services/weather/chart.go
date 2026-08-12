@@ -167,12 +167,13 @@ func BuildHourlyChartWithOptions(hourly []HourlyPoint, sun SunResponse, now time
 	fmt.Fprintf(&b, `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %.0f %.0f" preserveAspectRatio="xMidYMid meet" role="img" style="display:block;width:100%%;height:auto;">`, width, height)
 	fmt.Fprintf(&b, `<rect width="100%%" height="100%%" fill="#fff"/>`)
 	fmt.Fprintf(&b, `<clipPath id="plot"><rect x="%.0f" y="%.0f" width="%.0f" height="%.0f"/></clipPath>`, padL, padT, chartW, chartH)
-	fmt.Fprintf(&b, `<rect x="%.0f" y="%.0f" width="%.0f" height="%.0f" fill="none" stroke="#ccc" stroke-width="1.5"/>`, padL, padT, chartW, chartH)
+	// Monochrome e-paper: stroke/fill only pure black (no greys).
+	fmt.Fprintf(&b, `<rect x="%.0f" y="%.0f" width="%.0f" height="%.0f" fill="none" stroke="#000" stroke-width="1.5"/>`, padL, padT, chartW, chartH)
 
 	for i := 0; i <= 4; i++ {
 		v := tempMin + (tempMax-tempMin)*float64(i)/4
 		y := yTemp(v)
-		fmt.Fprintf(&b, `<line x1="%.0f" y1="%.1f" x2="%.0f" y2="%.1f" stroke="#eee" stroke-width="1"/>`, padL, y, padL+chartW, y)
+		fmt.Fprintf(&b, `<line x1="%.0f" y1="%.1f" x2="%.0f" y2="%.1f" stroke="#000" stroke-width="1"/>`, padL, y, padL+chartW, y)
 	}
 
 	axisX := padL + chartW + 4
@@ -180,18 +181,18 @@ func BuildHourlyChartWithOptions(hourly []HourlyPoint, sun SunResponse, now time
 		for i := 0; i <= 4; i++ {
 			v := windScaleMax * float64(i) / 4
 			y := yWind(v)
-			fmt.Fprintf(&b, `<text x="%.1f" y="%.1f" font-size="%.0f" fill="#666" text-anchor="start">%.0f</text>`, axisX, y+4, chartFontAxis, v)
+			fmt.Fprintf(&b, `<text x="%.1f" y="%.1f" font-size="%.0f" fill="#000" text-anchor="start">%.0f</text>`, axisX, y+4, chartFontAxis, v)
 		}
-		fmt.Fprintf(&b, `<text x="%.0f" y="12" font-size="%.0f" fill="#666">km/h</text>`, axisX, chartFontAxis)
+		fmt.Fprintf(&b, `<text x="%.0f" y="12" font-size="%.0f" fill="#000">km/h</text>`, axisX, chartFontAxis)
 		axisX += 28
 	}
 	if showHumidity {
 		for i := 0; i <= 4; i++ {
 			v := humidityMaxPct * float64(i) / 4
 			y := yHumid(v)
-			fmt.Fprintf(&b, `<text x="%.1f" y="%.1f" font-size="%.0f" fill="#999" text-anchor="start">%.0f%%</text>`, axisX, y+4, chartFontAxis, v)
+			fmt.Fprintf(&b, `<text x="%.1f" y="%.1f" font-size="%.0f" fill="#000" text-anchor="start">%.0f%%</text>`, axisX, y+4, chartFontAxis, v)
 		}
-		fmt.Fprintf(&b, `<text x="%.0f" y="12" font-size="%.0f" fill="#999">%%</text>`, axisX, chartFontAxis)
+		fmt.Fprintf(&b, `<text x="%.0f" y="12" font-size="%.0f" fill="#000">%%</text>`, axisX, chartFontAxis)
 	}
 
 	drawLine := func(values []float64, yFn func(float64) float64, stroke string, strokeWidth float64) {
@@ -209,12 +210,12 @@ func BuildHourlyChartWithOptions(hourly []HourlyPoint, sun SunResponse, now time
 		b.WriteString(`"/></g>`)
 	}
 
-	drawLine(temps, yTemp, "#111", 2.5)
+	drawLine(temps, yTemp, "#000", 2.5)
 	if showWind {
-		drawLine(winds, yWind, "#666", 2)
+		drawLine(winds, yWind, "#000", 2)
 	}
 	if showHumidity {
-		drawLine(humids, yHumid, "#999", 2)
+		drawLine(humids, yHumid, "#000", 2)
 	}
 
 	for i, h := range hourly {
@@ -222,28 +223,28 @@ func BuildHourlyChartWithOptions(hourly []HourlyPoint, sun SunResponse, now time
 		x := xFor(t)
 		yt := yTemp(temps[i])
 
-		fmt.Fprintf(&b, `<circle cx="%.1f" cy="%.1f" r="3.2" fill="#111"/>`, x, yt)
+		fmt.Fprintf(&b, `<circle cx="%.1f" cy="%.1f" r="3.2" fill="#000"/>`, x, yt)
 		showLabel := !opts.SparseLabels || labelIdx[i]
 		if showLabel {
-			fmt.Fprintf(&b, `<text x="%.1f" y="%.1f" font-size="%.0f" fill="#111" text-anchor="middle" font-weight="700">%.0f°</text>`, x, yt-10, chartFontPoint, temps[i])
+			fmt.Fprintf(&b, `<text x="%.1f" y="%.1f" font-size="%.0f" fill="#000" text-anchor="middle" font-weight="700">%.0f°</text>`, x, yt-10, chartFontPoint, temps[i])
 		}
 
 		if i%2 == 0 || i == len(hourly)-1 {
 			label := t.In(loc).Format("15h")
-			fmt.Fprintf(&b, `<text x="%.1f" y="%.0f" font-size="%.0f" fill="#444" text-anchor="middle" font-weight="600">%s</text>`, x, xLabelY, chartFontHour, label)
+			fmt.Fprintf(&b, `<text x="%.1f" y="%.0f" font-size="%.0f" fill="#000" text-anchor="middle" font-weight="600">%s</text>`, x, xLabelY, chartFontHour, label)
 		}
 	}
 
 	x0 := xFor(start)
 	if showWind {
 		yw := yWind(winds[0])
-		fmt.Fprintf(&b, `<circle cx="%.1f" cy="%.1f" r="3" fill="#666"/>`, x0, yw)
-		fmt.Fprintf(&b, `<text x="%.1f" y="%.1f" font-size="%.0f" fill="#666" text-anchor="start" font-weight="700">%.0f km/h</text>`, x0+6, yw-8, chartFontCurrent, winds[0])
+		fmt.Fprintf(&b, `<circle cx="%.1f" cy="%.1f" r="3" fill="#000"/>`, x0, yw)
+		fmt.Fprintf(&b, `<text x="%.1f" y="%.1f" font-size="%.0f" fill="#000" text-anchor="start" font-weight="700">%.0f km/h</text>`, x0+6, yw-8, chartFontCurrent, winds[0])
 	}
 	if showHumidity {
 		yh := yHumid(humids[0])
-		fmt.Fprintf(&b, `<circle cx="%.1f" cy="%.1f" r="3" fill="#999"/>`, x0, yh)
-		fmt.Fprintf(&b, `<text x="%.1f" y="%.1f" font-size="%.0f" fill="#999" text-anchor="start" font-weight="700">%.0f%%</text>`, x0+6, yh-8, chartFontCurrent, humids[0])
+		fmt.Fprintf(&b, `<circle cx="%.1f" cy="%.1f" r="3" fill="#000"/>`, x0, yh)
+		fmt.Fprintf(&b, `<text x="%.1f" y="%.1f" font-size="%.0f" fill="#000" text-anchor="start" font-weight="700">%.0f%%</text>`, x0+6, yh-8, chartFontCurrent, humids[0])
 	}
 
 	drawSunLine := func(ts, label string) {
@@ -258,8 +259,8 @@ func BuildHourlyChartWithOptions(hourly []HourlyPoint, sun SunResponse, now time
 			return
 		}
 		x := xFor(t)
-		fmt.Fprintf(&b, `<line x1="%.1f" y1="%.0f" x2="%.1f" y2="%.0f" stroke="#111" stroke-width="2" stroke-dasharray="5 3"/>`, x, padT, x, padT+chartH)
-		fmt.Fprintf(&b, `<text x="%.1f" y="%.0f" font-size="%.0f" fill="#111" font-weight="700">%s</text>`, x+3, padT+14, chartFontSun, label)
+		fmt.Fprintf(&b, `<line x1="%.1f" y1="%.0f" x2="%.1f" y2="%.0f" stroke="#000" stroke-width="2" stroke-dasharray="5 3"/>`, x, padT, x, padT+chartH)
+		fmt.Fprintf(&b, `<text x="%.1f" y="%.0f" font-size="%.0f" fill="#000" font-weight="700">%s</text>`, x+3, padT+14, chartFontSun, label)
 	}
 
 	drawSunLine(sun.NextSunrise, "↑ lever")
